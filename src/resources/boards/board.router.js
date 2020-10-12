@@ -1,11 +1,11 @@
 const router = require('express').Router();
-const User = require('./user.model');
-const usersService = require('./user.service');
+const Board = require('./board.model');
+const boardsService = require('./board.service');
 
 router.route('/').get(async (req, res) => {
   try {
-    const users = await usersService.getAll();
-    res.json(users.map(User.toResponse));
+    const boards = await boardsService.getAll();
+    res.json(boards.map(Board.toResponse));
   } catch (e) {
     res.status(404).send(e.message);
   }
@@ -13,8 +13,8 @@ router.route('/').get(async (req, res) => {
 
 router.route('/:id').get(async (req, res) => {
   try {
-    const user = await usersService.get(req.params.id);
-    res.json(User.toResponse(user));
+    const board = await boardsService.get(req.params.id);
+    res.json(Board.toResponse(board));
   } catch (e) {
     res.status(404).send(e.message);
   }
@@ -22,9 +22,9 @@ router.route('/:id').get(async (req, res) => {
 
 router.route('/').post(async (req, res) => {
   try {
-    const { login, password, name } = req.body;
-    const user = await usersService.create(new User({ login, password, name }));
-    res.json(User.toResponse(user));
+    const { title, columns } = req.body;
+    const board = await boardsService.create(new Board({ title, columns }));
+    res.json(Board.toResponse(board));
   } catch (e) {
     res.status(404).send(e.message);
   }
@@ -36,8 +36,8 @@ router.route('/:id').put(async (req, res) => {
       body,
       params: { id }
     } = req;
-    const user = await usersService.update({ id, ...body });
-    res.json(User.toResponse(user));
+    const board = await boardsService.update({ id, ...body });
+    res.json(Board.toResponse(board));
   } catch (e) {
     res.status(404).send(e.message);
   }
@@ -45,8 +45,8 @@ router.route('/:id').put(async (req, res) => {
 
 router.route('/:id').delete(async (req, res) => {
   try {
-    const user = await usersService.remove(req.params.id);
-    res.json(User.toResponse(user));
+    const board = await boardsService.remove(req.params.id);
+    res.json(Board.toResponse(board));
   } catch (e) {
     res.status(404).send(e.message);
   }
