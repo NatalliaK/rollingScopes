@@ -22,8 +22,14 @@ router.route('/:id').get(async (req, res) => {
 
 router.route('/').post(async (req, res) => {
   try {
-    const { title, columns } = req.body;
-    const task = await tasksService.create(new Task({ title, columns }));
+    const {
+      body: { title, order, description, userId, columnId },
+      params: { boardId }
+    } = req;
+
+    const task = await tasksService.create(
+      new Task({ title, order, description, userId, columnId, boardId })
+    );
     res.json(Task.toResponse(task));
   } catch (e) {
     res.status(404).send(e.message);

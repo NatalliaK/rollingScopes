@@ -1,5 +1,7 @@
 const DB = require('../../common/temporaryDB');
-const TABLE_NAME = 'BOARDS';
+const BOARDS = require('../../constants').BOARDS;
+
+const TABLE_NAME = BOARDS;
 
 const getAll = async () => await DB.getAll(TABLE_NAME);
 

@@ -1,11 +1,26 @@
 const User = require('../resources/users/user.model');
 const Board = require('../resources/boards/board.model');
 const Task = require('../resources/tasks/task.model');
+const { USERS, BOARDS, TASKS } = require('../constants');
 
 const DB = {
-  USERS: {},
-  BOARDS: {},
-  TASKS: {}
+  [USERS]: {},
+  [BOARDS]: {},
+  [TASKS]: {}
+};
+
+const actions = {
+  [USERS]: id =>
+    Object.values(DB[TASKS])
+      .filter(entity => entity.userId === id)
+      .forEach(entity => (DB[TASKS][entity].id = null)),
+  [BOARDS]: id =>
+    Object.values(DB[TASKS])
+      .filter(entity => entity.boardId !== id)
+      .forEach(entity => {
+        delete DB[TASKS][entity.id];
+      }),
+  [TASKS]: () => {}
 };
 
 (() => {
@@ -54,7 +69,15 @@ const update = async (entitiesName, entity) => {
   return entity;
 };
 
-const remove = async (entitiesName, id) => delete DB[entitiesName][id];
+const remove = async (entitiesName, id) => {
+  const entity = get(entitiesName, id);
+
+  if (entity) {
+    actions[entitiesName]();
+    delete DB[entitiesName][id];
+    return {};
+  }
+};
 
 module.exports = {
   getAll,
