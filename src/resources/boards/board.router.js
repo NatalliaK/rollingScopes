@@ -1,55 +1,72 @@
 const router = require('express').Router();
 const Board = require('./board.model');
 const boardsService = require('./board.service');
+const { catchErrors } = require('../../utility');
 
-router.route('/').get(async (req, res) => {
-  try {
-    const boards = await boardsService.getAll();
-    res.json(boards.map(Board.toResponse));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+router
+  .route('/')
+  .get(
+    catchErrors(async (req, res) => {
+      const boards = await boardsService.getAll();
 
-router.route('/:id').get(async (req, res) => {
-  try {
-    const board = await boardsService.get(req.params.id);
-    res.json(Board.toResponse(board));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      if (boards) {
+        res.status(200).json(boards.map(Board.toResponse));
+      } else {
+        res.status(404).send('Boards not found');
+      }
+    })
+  )
+  .post(
+    catchErrors(async (req, res) => {
+      const { title, columns } = req.body;
+      const board = await boardsService.create(new Board({ title, columns }));
 
-router.route('/').post(async (req, res) => {
-  try {
-    const { title, columns } = req.body;
-    const board = await boardsService.create(new Board({ title, columns }));
-    res.json(Board.toResponse(board));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      if (board) {
+        res.status(200).json(Board.toResponse(board));
+      } else {
+        res.status(404).send('Board not created');
+      }
+    })
+  );
 
-router.route('/:id').put(async (req, res) => {
-  try {
-    const {
-      body,
-      params: { id }
-    } = req;
-    const board = await boardsService.update({ id, ...body });
-    res.json(Board.toResponse(board));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+router
+  .route('/:id')
+  .get(
+    catchErrors(async (req, res) => {
+      const board = await boardsService.get(req.params.id);
 
-router.route('/:id').delete(async (req, res) => {
-  try {
-    const board = await boardsService.remove(req.params.id);
-    res.json(Board.toResponse(board));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      if (board) {
+        res.status(200).json(Board.toResponse(board));
+      } else {
+        res.status(404).send('Board not found');
+      }
+    })
+  )
+  .put(
+    catchErrors(async (req, res) => {
+      const {
+        body,
+        params: { id }
+      } = req;
+      const board = await boardsService.update({ id, ...body });
+
+      if (board) {
+        res.status(200).json(Board.toResponse(board));
+      } else {
+        res.status(404).send('Board not updated');
+      }
+    })
+  )
+  .delete(
+    catchErrors(async (req, res) => {
+      const board = await boardsService.remove(req.params.id);
+
+      if (board) {
+        res.status(200).json(Board.toResponse(board));
+      } else {
+        res.status(404).send('Board not removed');
+      }
+    })
+  );
 
 module.exports = router;

@@ -24,5 +24,6 @@ app.use('/', (req, res, next) => {
 app.use('/users', userRouter);
 app.use('/boards', boardRouter);
 app.use('/boards/:boardId/tasks', taskRouter);
+app.use('*', (req, res) => res.status(404).send('Page not found'));
 
 module.exports = app;

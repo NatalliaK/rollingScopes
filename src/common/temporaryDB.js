@@ -9,50 +9,26 @@ const DB = {
   [TASKS]: {}
 };
 
-const actions = {
-  [USERS]: id =>
-    Object.values(DB[TASKS])
-      .filter(entity => entity.userId === id)
-      .forEach(entity => (DB[TASKS][entity].id = null)),
-  [BOARDS]: id =>
-    Object.values(DB[TASKS])
-      .filter(entity => entity.boardId !== id)
-      .forEach(entity => {
-        delete DB[TASKS][entity.id];
-      }),
-  [TASKS]: () => {}
-};
-
 (() => {
   const usersDB = DB.USERS;
   const boardsDB = DB.BOARDS;
   const tasksDB = DB.TASKS;
 
-  /* usersDB*/
+  for (let i = 0; i <= 3; i++) {
+    /* usersDB*/
+    const user = new User();
+    usersDB[user.id] = { ...user };
 
-  const user1 = new User();
-  const user2 = new User();
-  const user3 = new User();
+    /* boardsDB*/
+    const board = new Board();
+    boardsDB[board.id] = { ...board };
 
-  usersDB[user1.id] = { ...user1 };
-  usersDB[user2.id] = { ...user2 };
-  usersDB[user3.id] = { ...user3 };
+    /* tasksDB */
 
-  /* boardsDB*/
+    const task = new Task(board.id);
 
-  const board1 = new Board();
-  const board2 = new Board();
-
-  boardsDB[board1.id] = { ...board1 };
-  boardsDB[board2.id] = { ...board2 };
-
-  /* tasksDB */
-
-  const task1 = new Task(board1.id);
-  const task2 = new Task(board2.id);
-
-  tasksDB[task1.id] = { ...task1 };
-  tasksDB[task2.id] = { ...task2 };
+    tasksDB[task.id] = { ...task };
+  }
 })();
 
 const getAll = async entitiesName => Object.values(DB[entitiesName]);
@@ -70,13 +46,12 @@ const update = async (entitiesName, entity) => {
 };
 
 const remove = async (entitiesName, id) => {
-  const entity = get(entitiesName, id);
+  const entity = await get(entitiesName, id);
 
   if (entity) {
-    actions[entitiesName]();
-    delete DB[entitiesName][id];
-    return {};
+    return delete DB[entitiesName][id];
   }
+  return entity;
 };
 
 module.exports = {

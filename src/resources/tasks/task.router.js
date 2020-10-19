@@ -1,61 +1,70 @@
 const router = require('express').Router({ mergeParams: true });
 const Task = require('./task.model');
 const tasksService = require('./task.service');
+const { catchErrors } = require('../../utility');
 
-router.route('/').get(async (req, res) => {
-  try {
-    const tasks = await tasksService.getAll();
-    res.json(tasks.map(Task.toResponse));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+router
+  .route('/')
+  .get(
+    catchErrors(async (req, res) => {
+      const tasks = await tasksService.getAll();
+      if (tasks) {
+        res.status(200).json(tasks.map(Task.toResponse));
+      } else res.status(404).send('Tasks not found');
+    })
+  )
+  .post(
+    catchErrors(async (req, res) => {
+      const {
+        body: { title, order, description, userId, columnId },
+        params: { boardId }
+      } = req;
 
-router.route('/:id').get(async (req, res) => {
-  try {
-    const task = await tasksService.get(req.params.id);
-    res.json(Task.toResponse(task));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      const task = await tasksService.create(
+        new Task({ title, order, description, userId, columnId, boardId })
+      );
 
-router.route('/').post(async (req, res) => {
-  try {
-    const {
-      body: { title, order, description, userId, columnId },
-      params: { boardId }
-    } = req;
+      if (task) {
+        res.status(200).json(Task.toResponse(task));
+      } else res.status(404).send('Task not created');
+    })
+  );
 
-    const task = await tasksService.create(
-      new Task({ title, order, description, userId, columnId, boardId })
-    );
-    res.json(Task.toResponse(task));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+router
+  .route('/:id')
+  .get(
+    catchErrors(async (req, res) => {
+      const task = await tasksService.get(req.params.id);
 
-router.route('/:id').put(async (req, res) => {
-  try {
-    const {
-      body,
-      params: { id }
-    } = req;
-    const task = await tasksService.update({ id, ...body });
-    res.json(Task.toResponse(task));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      if (task) {
+        res.status(200).json(Task.toResponse(task));
+      } else res.status(404).send('Task not found');
+    })
+  )
+  .put(
+    catchErrors(async (req, res) => {
+      const {
+        body,
+        params: { id }
+      } = req;
 
-router.route('/:id').delete(async (req, res) => {
-  try {
-    const task = await tasksService.remove(req.params.id);
-    res.json(Task.toResponse(task));
-  } catch (e) {
-    res.status(404).send(e.message);
-  }
-});
+      const task = await tasksService.update({ id, ...body });
+
+      if (task) {
+        res.status(200).json(Task.toResponse(task));
+      } else return res.status(404).send('Task not updated');
+    })
+  )
+  .delete(
+    catchErrors(async (req, res) => {
+      const task = await tasksService.remove(req.params.id);
+
+      if (task) {
+        res.status(204).json(Task.toResponse(task));
+        return await res.sendStatus(204);
+      }
+      return res.status(404).send('Task not found');
+    })
+  );
 
 module.exports = router;
